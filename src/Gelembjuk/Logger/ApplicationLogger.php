@@ -1,6 +1,6 @@
 <?php
 
-namespace Gelembjuk\Logging;
+namespace Gelembjuk\Logger;
 
 /*
 * This trait logs data using the application property in an object

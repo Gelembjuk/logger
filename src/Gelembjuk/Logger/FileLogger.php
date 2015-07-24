@@ -1,6 +1,6 @@
 <?php
 
-namespace Gelembjuk\Logging;
+namespace Gelembjuk\Logger;
 
 use \Psr\Log\LogLevel;
 
@@ -20,6 +20,9 @@ class FileLogger extends \Psr\Log\AbstractLogger
 		if (isset($options['groupfilter'])) {
 			$this->groupfilter = $options['groupfilter'];
 		}
+	}
+	public function setGroupFilter($groupfilter) {
+		$this->groupfilter = $groupfilter;
 	}
 	protected function extraFilter($level,$context) {
 		return true;
@@ -70,11 +73,15 @@ class FileLogger extends \Psr\Log\AbstractLogger
 			return false;
 		}
 		
-		fwrite($logfilehandle,'['.date('d-m-Y H:i:s').']: '.getmypid().': ');
-		fwrite($logfilehandle,$message."\n");
+		fwrite($logfilehandle, $this->formatLogLine($message) . "\n");
 
 		fclose($logfilehandle);
 		
 		return true;
+	}
+	protected function formatLogLine($message) {
+		$line = '['.date('d-m-Y H:i:s').']: '.getmypid().': ';
+		$line .= $message;
+		return $line;
 	}
 }
