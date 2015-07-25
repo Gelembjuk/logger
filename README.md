@@ -12,7 +12,7 @@ Using composer: [gelembjuk/logger](http://packagist.org/packages/gelembjuk/logge
 
 Configuration is done in run time with a constructor options (as hash argument)
 
-Configure **FileLogger** 
+#### Configure FileLogger 
 
 **logfile** path to your log file (where to write logs)
 **groupfilter** list of groups of events to log. `all` means log everything. Groups separated with **|** symbol
@@ -26,7 +26,7 @@ $logger1 = new Gelembjuk\Logger\FileLogger(
 
 ```
 
-Configure **ErrorScreen** 
+#### Configure ErrorScreen 
 
 **catchwarnings**	- (true|false) . If true then user error handler is set to catch warnings
 
@@ -65,7 +65,7 @@ $errors = new Gelembjuk\Logger\ErrorScreen(
 
 ### Usage
 
-## FileLogger
+#### FileLogger
 
 ```php
 
@@ -85,7 +85,7 @@ $logger1->setGroupFilter('group1|group2'); // after this only group1 and group2 
 $logger1->debug('This message will not be in logs as `test` is out of filter',array('group' => 'test'));
 
 ```
-## ApplicationLogger trait
+#### ApplicationLogger trait
 
 ```php
 
@@ -131,7 +131,7 @@ $c->doOtherThing();
 
 ```
 
-## ErrorScreen
+#### ErrorScreen
 
 ```php
 
