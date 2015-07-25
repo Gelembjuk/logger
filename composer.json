@@ -1,0 +1,19 @@
+{
+    "name": "gelembjuk/logger",
+    "description": "Allows to add logging functions to different classes, helps to handle errors, log errors and display error screen. Can catch wabrnings and fatal errors",
+    "require": {
+        "psr/log": "1.0.*"
+    },
+    "require-dev":{},
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Roman Gelembjuk",
+            "email": "roman@gelembjuk.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": { "Gelembjuk":"src/" }
+    },
+    "minimum-stability": "dev"
+}
