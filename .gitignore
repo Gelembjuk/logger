@@ -2,5 +2,12 @@
 examples/vendor
 examples/vendor/*
 
-*/tmp
-*/tmp/*
+# ignore temp folders in examples
+examples/log_from_classes/tmp/
+examples/log_from_classes/tmp/*
+
+examples/log/tmp/
+examples/log/tmp/*
+
+examples/errors/tmp/
+examples/errors/tmp/*
