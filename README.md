@@ -29,14 +29,23 @@ $logger1 = new Gelembjuk\Logger\FileLogger(
 Configure **ErrorScreen** 
 
 **catchwarnings**	- (true|false) . If true then user error handler is set to catch warnings
+
 **catchfatals**		- (true|false) . If true then fatal errors are catched. Use to log error and show `normal` error screen
+
 **showwarningmessage**	- (true|false) . If true then error screen is displayed in case of warning. If is false then error is only logged 
+
 **showfatalmessage** 	- (true|false) . Display error screen for fatal errors. If false then only log is dine. User will see `standard` fatal error in this case
+
 **viewformat**		- set vaue for the `viewformat` variable. Possible values: html, json, xml, http . html is default value
+
 **showtrace**		- (true|false). Switcher to know if to show error trace for a user as part of error screen
+
 **commonerrormessage**	- string Common error message to show to a user when error happens
+
 **logger**		- Object of FileLogger class
+
 **loggeroptions** 	- Options to create new FileLogger object
+
 
 ```php
 
@@ -114,7 +123,7 @@ class C {
 	}
 }
 
-$b = new B($logger1);
+$b = new B($logger1); // $logger1 is instance of FileLogger
 $c = new C($logger1);
 
 $b->doSomething();
@@ -130,7 +139,7 @@ require '../vendor/autoload.php';
 
 $errors = new Gelembjuk\Logger\ErrorScreen(
 		array(
-			'logger' => $logger1 /*create before*/,
+			'logger' => $logger1 /*created before*/,
 			'viewformat' => 'html',
 			'catchwarnings' => true,
 			'catchfatals' => true,
@@ -150,8 +159,9 @@ try {
 // presume there was no exception
 // now catch warning
 
-include('not_existent_file.php'); 	// warning is raised and catched in errors object
-					// error message displayed to a user
+// warning is raised and catched in errors object
+// error message displayed to a user
+include('not_existent_file.php'); 	
 
 ```
 
