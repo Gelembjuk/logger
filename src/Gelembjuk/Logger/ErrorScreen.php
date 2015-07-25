@@ -2,7 +2,8 @@
 
 /**
 * ErrorScreen - error logging and display class.
-* Can catch warning and fatal error to displau user frently messages
+* Can catch warning and fatal error to display a user frendly messages
+* Can be used to log exceptions with a trace.
 *
 * LICENSE: MIT
 *
@@ -19,51 +20,236 @@ class ErrorScreen {
 	// inherit logging functions
 	use ApplicationLogger;
 
-	protected $hidewarningmessage = true;
-	protected $hidefatalmessage = true; // user will still have a way to see it
+	/**
+	* Switcher to control if to show warning errors to a user
+	*
+	* @var boolean
+	*/
+	protected $showwarningmessage = false;
+	
+	/**
+	* Switcher to control if to show error screen to a user in case of fatal error
+	*
+	* @var boolean
+	*/
+	protected $showfatalmessage = true; // user will still have a way to see it
+	
+	/**
+	* Error screen display format. Possible values: html, json, xml, http
+	*
+	* @var string
+	*/
 	protected $viewformat = 'html';
+	
+	/**
+	* Switcher to control if to show error trace as part of error screen. Use only for dev mode
+	*
+	* @var boolean
+	*/
 	protected $showtrace = false;
 	
+	/**
+	* Internal flag to disable fatal error callback on user request. 
+	* The variable is needed because no way to remove shutdown function settings
+	*
+	* @var boolean
+	*/
+	protected $disablefatalcallback = false;
+	
+	/**
+	* This is the message to show for a user when error happens.
+	* If this is empty string then acrual error message will be shown.
+	*
+	* @var string
+	*/
+	protected $commonerrormessage = '';
+	
+	/**
+	* Internal counter of errors to stop whn too much errors.
+	*
+	* @var boolean
+	*/
+	protected $countoferrors = 0;
+	
+	/**
+	 * The constructor. 
+	 * 
+	 * Options:
+	 *   catchwarnings	- (true|false) . If true then user error handler is set to catch warnings
+	 *   catchfatals	- (true|false) . If true then fatal errors are catched. Use to log error and show `normal` error screen
+	 *   showwarningmessage	- (true|false) . If true then error screen is displayed in case of warning. If is false then error is only logged 
+	 *   showfatalmessage 	- (true|false) . Display error screen for fatal errors. If false then only log is dine. User will see `standard` fatal error in this case
+	 *   viewformat		- set vaue for the `viewformat` variable. Possible values: html, json, xml, http . html is default value
+	 *   showtrace		- (true|false). Switcher to know if to show error trace for a user as part of error screen
+	 *   commonerrormessage	- string Common error message to show to a user when error happens
+	 *   logger		- Object of logger class
+	 *   loggeroptions 	- Options to create new FileLogger object
+	 * 
+	 * @param array $options The list of settings for an object
+	 */
 	public function __construct($options = array()) {
 		if (isset($options['catchwarnings']) && $options['catchwarnings']) {
-			set_error_handler(array($this, 'warningHandler'));
+			$this->setCatchWarnings(true);
 		}
 
 		if (isset($options['catchfatals']) && $options['catchfatals']) {
-			register_shutdown_function(array($this, 'fatalsHandler'));
+			$this->setCatchFatals(true);
 		}
 
-		if (isset($options['hidewarningmessage'])) {
-			$this->hidewarningmessage = $options['hidewarningmessage'];
+		if (isset($options['showwarningmessage'])) {
+			$this->setShowWarningError($options['showwarningmessage']);
 		}
 
-		if (isset($options['hidefatalmessage'])) {
-			$this->hidefatalmessage = $options['hidefatalmessage'];
+		if (isset($options['showfatalmessage'])) {
+			$this->setShowFatalError($options['showfatalmessage']);
 		}
 
 		if (isset($options['viewformat'])) {
-			$this->viewformat = $options['viewformat'];
+			$this->setViewFormat($options['viewformat']);
 		}
 
 		if (isset($options['showtrace'])) {
-			$this->showtrace = $options['showtrace'];
+			$this->setShowTrace($options['showtrace']);
+		}
+		
+		if (isset($options['commonerrormessage'])) {
+			$this->setCommonErrorMessage($options['commonerrormessage']);
+		}
+		
+		if (isset($options['logger'])) {
+			// setLogger is from the ApplicationLogger trait
+			$this->setLogger($options['logger']);
+		} elseif (isset($options['loggeroptions'])) {
+			// create new logger
+			// initLogger is from the ApplicationLogger trait
+			$this->initLogger($options['loggeroptions']);
 		}
 	}
-	public function processError($exception,$type = 'exception') {
+	/**
+	 * Sets/Unsets user error catch function. It is used to catch warnings
+	 * 
+	 * @param boolean $catchwarnings (true|false) to set or unset warnings catch
+	 * 
+	 */
+	public function setCatchWarnings($catchwarnings = true) {
+		if ($catchwarnings) {
+			set_error_handler(array($this, 'warningHandler'));
+		} else {
+			restore_error_handler();
+		}
+	}
+	/**
+	 * Sets/Unsets fatal error catch function. It is used to catch fatal errors
+	 * 
+	 * @param boolean $catchfatals (true|false) to set or unset fatals catch
+	 * 
+	 */
+	public function setCatchFatals($catchfatals = true) {
+		if ($catchfatals) {
+			$this->disablefatalcallback = false;
+			register_shutdown_function(array($this, 'fatalsHandler'));
+		} else {
+			$this->disablefatalcallback = true;
+		}
+	}
+	/**
+	 * Sets/Unsets display of warning error screen to a user 
+	 * 
+	 * @param boolean $showwarning (true|false) to set or unset display error screen to a user
+	 * 
+	 */
+	public function setShowWarningError($showwarning = false) {
+		$this->showwarningmessage = $showwarning;
+	}
+	/**
+	 * Sets/Unsets display of fatal error screen to a user 
+	 * 
+	 * @param boolean $showfatal (true|false) to set or unset display fatal error screen to a user
+	 * 
+	 */
+	public function setShowFatalError($showfatal = false) {
+		$this->showfatalmessage = $showfatal;
+	}
+	/**
+	 * The function to get view format for error screen.
+	 * This function is created to change it easy in child classes if view format has some specific rules
+	 * 
+	 * @return string View format
+	 * 
+	 */
+	protected function getViewFormat() {
+		return $this->viewformat;
+	}
+	/**
+	 * Sets view format .
+	 * 
+	 * @param string $format possible values: html, json, xml, http
+	 * 
+	 */
+	public function setViewFormat($format) {
+		$this->viewformat = $format;
+	}
+	
+	/**
+	 * Sets common error message
+	 * 
+	 * @param string $message Error message to show to a user. If empty then actual error will be displayed
+	 * 
+	 */
+	public function setCommonErrorMessage($message) {
+		$this->commonerrormessage = $message;
+	}
+	/**
+	 * Sets show trace flag On or Off
+	 * 
+	 * @param boolean $showtrace true or false to show trace
+	 * 
+	 */
+	public function setShowTrace($showtrace) {
+		$this->showtrace = $showtrace;
+	}
+	/**
+	 * The function logs an error and desides what to show to a user
+	 * It can be called from outside or from internal methods in case of warning or fatal error
+	 * 
+	 * @param Exception $exception An exception to log and display
+	 * @param string $type Type of exception error. Possible values: exception, warning, fatal
+	 * 
+	 * @return boolean
+	 */
+	public function processError($exception, $type = 'exception', $logonly = false, $forcelogtrace = false) {
 		// log information 
 		// error function is from the trait . It will log something if there is logger inited
+		
+		$this->countoferrors++;
+		
+		if ($this->countoferrors > 500) {
+			// if there are so many errors then somethign went wrong. better to stop
+			// as it can be some wrong loop 
+			return false;
+		}
+		
 		$this->error($exception->getMessage(),
 			// set group and exception as context for logger. Logger will decide what to write to a file
-			array('group' => 'error|'.$type,'exception' => $exception));
+			array(
+				'group' => 'error|'.$type,
+				'exception' => $exception, 
+				'forcelogtrace' => $forcelogtrace,
+				'extrainfo' => 'Request info: '.$this->getRequestInformation()));
 		
 		$this->actionOnError($exception,$type);
 
-		if ($this->hidewarningmessage && $type == 'warning') {
-			// how nothing to a user in case of warning
+		// this condition can be used to log information about some exception but don't stop the app
+		if ($logonly) {
 			return true;
 		}
-		if ($this->hidefatalmessage && $type == 'fatal') {
-			// how nothing to a user in case of warning
+
+		if (!$this->showwarningmessage && $type == 'warning') {
+			// show nothing to a user in case of warning
+			return true;
+		}
+		if (!$this->showfatalmessage && $type == 'fatal') {
+			// show nothing to a user in case of fatal error
 			return true;
 		}
 
@@ -75,6 +261,7 @@ class ErrorScreen {
 			return true;
 		}
 		
+		// display error screen based on the format
 		switch ($format) {
 			case 'json' :
 				$this->showJSON($exception);
@@ -88,23 +275,34 @@ class ErrorScreen {
 			default:
 				$this->showHTML($exception);
 		}
+		
+		// if error message is displayed then no sence to do somethig else.
+		die();
 	}
 
-	// to do something else with error message in child class
+	/**
+	 * To do something else with error message in a child class.
+	 * For example, send email with alert to admin about error
+	 */
 	protected function actionOnError($exception,$type) {
 		return true;
 	}
 	
-	/*
-	* Display error in HTML format
-	*/
+	/**
+	 * Display error in HTML format
+	 * 
+	 * @param Exception $exception Exception to show message from
+	 */
 	protected function showHTML($exception) {
 		echo $this->getHTMLError($exception);
-		exit;
 	}
-	/*
-	* Build HTML to display error
-	*/
+	/**
+	 * Build HTML to display error
+	 * 
+	 * @param Exception $exception Exception to show message from
+	 * 
+	 * @return string HTML of the error screen
+	 */
 	public function getHTMLError($exception) {
 		$html = '<div style="position: absolute; top:0; right:0; width:100%; height:100%; background: #ffffff;">'."\n".
 			'<table align="center" style="width:65%; margin-top: 30px; background: #FFCC66;" cellpadding="10" cellspacing="1" border="0">'."\n".
@@ -113,7 +311,7 @@ class ErrorScreen {
 			'</tr>'."\n".
 			'<tr>'."\n".
 				'<td style="padding-top: 15px; padding-bottom: 35px; background: #FFFF99;">'."\n".
-					$exception->getMessage().'.<br><br>'."\n".
+					$this->getMessageForUser($exception).'.<br><br>'."\n".
 					'We are notified and will solve the problem as soon as possible.<br>'."\n".
 				'</td>'."\n".
 			'</tr>'."\n";
@@ -130,73 +328,78 @@ class ErrorScreen {
 			'</div>';
 		return $html;
 	}
-	/*
-	* Return only headers with an error as part of a header
-	*/
+	/**
+	 * Return to user only headers with an error as part of a header
+	 */
 	protected function showHTTP($exception) {
 		header("HTTP/1.1 400 Unexpected error");
-		$message = preg_replace('![^a-z 0-9_-]!','',$exception->getMessage());
+		$message = preg_replace('![^a-z 0-9_-]!','',$this->getMessageForUser($exception));
 		header("X-Error-Message: ".$message);
-		exit;
 	}
-	/*
-	* Display as JSON document
-	*/
+	/**
+	 * Display error in JSON format
+	 * 
+	 * @param Exception $exception Exception to show message from
+	 */
 	protected function showJSON($exception) {
-		$data = array('status'=>'error','message'=>$exception->getMessage());
+		$data = array('status'=>'error','message'=>$this->getMessageForUser($exception));
 		header('Content-Type: application/json; charset=utf-8');
 		echo json_encode($data);
-		exit;
 	}
-	/*
-	* Display as XML document
-	*/
+	/**
+	 * Display error in XML format
+	 * 
+	 * @param Exception $exception Exception to show message from
+	 */
 	protected function showXML($exception) {
 		$endline = "\r\n";
 		$xml = '<?xml version="1.0" encoding="UTF-8"?>'.$endline.
 				'<response>'.$endline.
 					'<status>error</status>'.$endline.
-					'<message>'.htmlspecialchars($exception->getMessage()).'</message>'.$endline.
+					'<message>'.htmlspecialchars($this->getMessageForUser($exception)).'</message>'.$endline.
 				'</response>';
 
 		header('Content-Type: application/xml; charset=utf-8');
 		echo $xml;
-		exit;
 	}
-	/*
-	* To catch warnings. Notices are ignored in this function.
-	*/
+	/**
+	 * To catch warnings. Notices are ignored in this function.
+	 * This is the callback for a function set_error_handler
+	 */
 	public function warningHandler($errno, $errstr, $errfile, $errline) {
 		if ($errno != E_WARNING && $errno != E_USER_WARNING) {
 			return false;
 		}
 		
-		$message = "WARNING! [$errno] $errstr .";
-		$message .= "  Line $errline in file $errfile. Continue execution.";
-		$message .= $this->getRequestInformation();
+		$message = "WARNING! [$errno] $errstr. Line $errline in file $errfile. ";
 		
 		// because some more problems can happen during logging or display
 		// better to disable this handler
-		restore_error_handler();
+		$this->setCatchWarnings(false);
 		
 		$exception = new \Exception($message);
 
 		$this->processError($exception,'warning');		
 		
-		set_error_handler(array($this, 'warningHandler'));
+		$this->setCatchWarnings(true);
 	}
-	/*
-	* Catch Fatal error. Note. Fatal error message will be displayed anyway. Not possible to hide it at all
-	* But we can use the HTML+CSS trick to hide it from a user if this was html reuest (no JSON or XML)
-	*/
+	/**
+	 * Catch Fatal error. Note. Fatal error message will be displayed anyway. Not possible to hide it at all
+	 * But we can use the HTML+CSS trick to hide it from a user if this was html reuest (no JSON or XML)
+	 * This is the callback for the function register_shutdown_function
+	 */
 	public function fatalsHandler() {
+		if ($this->disablefatalcallback) {
+			// do nothing. fatals handler was canceled
+			// no way to remove settings of this callback so cuh variable is needed.
+			return false;
+		}
 		$error = error_get_last();
 
 		if($error !== NULL) {
 			if ($error['type'] == E_CORE_ERROR || $error['type'] == E_ERROR) {
 
 				$message = 'Fatal Error: '.$error["message"].' in line: '.$error["line"].' in the file: '.$error["file"];
-				$message .= $this->getRequestInformation();
 
 				$exception = new \Exception($message);
 
@@ -205,9 +408,11 @@ class ErrorScreen {
 		}
 		return true;
 	}
-	/*
-	* Collect request information to log it. This can help to solve a problem later.
-	*/
+	/**
+	 * Collect request information to log it. This can help to solve a problem later.
+	 * 
+	 * @return string Requets information, for logging
+	 */
 	protected function getRequestInformation() {
 		$postdata = '';
 			
@@ -239,11 +444,15 @@ class ErrorScreen {
 			$_SERVER['HTTP_REFERER'];
 		return $requestinfo;
 	}
-	
-	protected function getViewFormat() {
-		return $this->viewformat;
-	}
-	public function setViewFormat($format) {
-		$this->viewformat = $format;
+	/**
+	 * The function decides what message to show to a user. Real error or some common text
+	 * 
+	 * @return string Text message
+	 */
+	protected function getMessageForUser($exception) {
+		if ($this->commonerrormessage != '') {
+			return $this->commonerrormessage;
+		}
+		return $exception->getMessage();
 	}
 }
