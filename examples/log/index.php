@@ -1,20 +1,22 @@
 <?php 
 
-// if you installed gelembjuk/logger with composer then replace next line with
+/**
+ * Example. Usage of FileLogger to log with configurable filtering
+ * The example demonstrates how to use the gelembjuk/logger package to have configurable logging
+ * 
+ * This example is part of gelembjuk/logger package by Roman Gelembjuk (@gelembjuk)
+ */
+
 // path to your composer autoloader
-// require '../vendor/autoload.php';
-require ('../autoload.php');
+require ('../vendor/autoload.php');
 
-
-/*
-Example. Usage of FileLogger to log with configurable filtering
-*/
-
-
+// example class. It has some logging inside.
+// Using the group events filter you can turn groups On and Off
 class Worker {
 	protected $logger;
 	public function __construct($logger) {
 		$this->logger = $logger;
+		$this->logger->debug('Class object created',array('group' => 'construct'));
 	}
 
 	public function doSomething() {
@@ -42,16 +44,18 @@ class Worker {
 	}
 }
 
-// NOTE. this file must be writable!
+// NOTE. this file must be writable! 
+// The path to your log file
 $logfile = dirname(__FILE__).'/tmp/log.txt';
 
+// create the logger object
 $logger1 = new Gelembjuk\Logger\FileLogger(
-			array(
-				'logfile' => $logfile,
-				'groupfilter' => 'all' // log everything
-			));
+		array(
+			'logfile' => $logfile,
+			'groupfilter' => 'all' // log everything
+		));
 
-// do test log write
+// do test log write. at this time all logs will be written
 $logger1->debug('Test log',array('group' => 'test'));
 
 // create test class object
@@ -63,22 +67,26 @@ $worker->doSomething();
 $logger1->debug('Now disable logging',array('group' => 'test'));
 
 // disable all loggin with empty filter
-$logger1->setGroupFilter('');  // log nothing
+$logger1->setGroupFilter('');  
 
-// call the methind and nothing will be logged 
+// call the method and nothing will be logged 
 $worker->doSomething();
 
 // log only selected groups events
-$logger1->setGroupFilter('test|C');  // now log only test and C group events
+// now log only test and C group events
+$logger1->setGroupFilter('test|C');  
 
 $logger1->debug('Now `test` and `C` groups to log',array('group' => 'test'));
 
+// call the method. Only `C` logs will be logged 
 $worker->doSomething();
 
-$logger1->setGroupFilter('test|B');  // now log only test and C group events
+// now log only test and C group events
+$logger1->setGroupFilter('test|B');  
 
 $logger1->debug('Now `test` and `B` groups to log',array('group' => 'test'));
 
+// call the method. Only `B` logs will be logged 
 $worker->doSomething();
 
 $logger1->debug('End of program! NOTE. Each log line has a time and process ID, sometimes this helps!',array('group' => 'test'));

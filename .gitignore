@@ -1,1 +1,6 @@
 
+examples/vendor
+examples/vendor/*
+
+*/tmp
+*/tmp/*

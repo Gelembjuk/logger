@@ -1,21 +1,25 @@
 <?php
 
+/**
+ * This trait helps to include logging functionality in your classes
+ */
+
 namespace Gelembjuk\Logger;
 
-/*
-* This trait logs data using the application property in an object
-*/
-
 trait ApplicationLogger {
+	// inherit from Psr\Log 
 	use \Psr\Log\LoggerTrait;
+	
+	protected $logger;
 	
 	public function log($level, $message, array $context = array()) {
 		if (property_exists($this,'application') && is_object($this->application)) {
-			$this->application->getLogger()->log($level, $message, $context);
+			$logger = $this->application->getLogger();
+			if (is_object($logger)) {
+				$logger->log($level, $message, $context);
+			}
 		} elseif (property_exists($this,'logger') && is_object($this->logger)) {
 			$this->logger->log($level, $message, $context);
-		} elseif (property_exists($this,'logger') && method_exists($this,'getLogger')) {
-			$this->getLogger()->log($level, $message, $context);
 		}
 	}
 	
@@ -25,6 +29,11 @@ trait ApplicationLogger {
 	public function setLogger($logger) {
 		if (property_exists($this,'logger')) {
 			$this->logger = $logger;
+		}
+	}
+	public function initLogger($options = array()) {
+		if (property_exists($this,'logger')) {
+			$this->logger = new FileLogger($options);
 		}
 	}
 	public function getLogger() {
