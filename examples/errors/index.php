@@ -152,7 +152,8 @@ if ($test == '1') {
 <p>All errors are logged to a file</p>
 <?
 
-if (!is_writable($logfile)) {
+if (!is_writable($logfile) && file_exists($logfile)
+	|| !file_exists($logfile) && !is_writable(dirname($logfile))) {
 	echo '<font color="red">No access to write to log file '.$logfile.'</font>';
 }
 

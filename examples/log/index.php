@@ -48,6 +48,14 @@ class Worker {
 // The path to your log file
 $logfile = dirname(__FILE__).'/tmp/log.txt';
 
+// such check is done only for this test
+// on production you have to decide if you need it or not
+if (!is_writable($logfile) && file_exists($logfile)
+	|| !file_exists($logfile) && !is_writable(dirname($logfile))) {
+	echo '<font color="red">No access to write to log file '.$logfile.'</font>';
+	exit;
+}
+
 // create the logger object
 $logger1 = new Gelembjuk\Logger\FileLogger(
 		array(

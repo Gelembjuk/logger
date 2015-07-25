@@ -89,6 +89,14 @@ class C {
 // The path to your log file
 $logfile = dirname(__FILE__).'/tmp/log.txt';
 
+// such check is done only for this test
+// on production you have to decide if you need it or not
+if (!is_writable($logfile) && file_exists($logfile)
+	|| !file_exists($logfile) && !is_writable(dirname($logfile))) {
+	echo '<font color="red">No access to write to log file '.$logfile.'</font>';
+	exit;
+}
+
 // create the logger object
 $logger1 = new Gelembjuk\Logger\FileLogger(
 		array(
@@ -118,6 +126,7 @@ unset($c1);
 // ****** TEST 2 ******
 // don't use existent logger, but create it inside
 $application2 = new Application(null);
+
 // we set filtering to `construct`. So only logs from constructors will be saved
 $application2->initLogger(array('logfile' => $logfile,'groupfilter' => 'construct' ));
 $application2->doSomething();

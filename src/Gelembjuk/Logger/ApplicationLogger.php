@@ -17,6 +17,8 @@
 
 namespace Gelembjuk\Logger;
 
+use \Psr\Log\LogLevel as LogLevel;
+
 trait ApplicationLogger {
 	// inherit from Psr\Log 
 	use \Psr\Log\LoggerTrait;
