@@ -15,5 +15,5 @@
     "autoload": {
         "psr-0": { "Gelembjuk":"src/" }
     },
-    "minimum-stability": "dev"
+    "minimum-stability": "stable"
 }

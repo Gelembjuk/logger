@@ -70,8 +70,14 @@ trait ApplicationLogger {
 	 * 
 	 * @param \Psr\Log\AbstractLogger $logger
 	 */
-	public function setLogger($logger) {
+	public function setLogger($logger, $checkifexists = false) {
+		if ($checkifexists && is_object($this->logger)) {
+			return false;
+		}
+		
 		$this->logger = $logger;
+		
+		return true;
 	}
 	/**
 	 * Create new logger object, instance of FileLogger
