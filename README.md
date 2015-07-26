@@ -32,6 +32,8 @@ $logger1 = new Gelembjuk\Logger\FileLogger(
 
 **catchfatals**		- (true|false) . If true then fatal errors are catched. Use to log error and show `normal` error screen
 
+**catchexceptions**	- (true|false) . If true then uncatched exceptions will be catched by the object. Use this to catch exceptions missed in any try {} catch block
+
 **showwarningmessage**	- (true|false) . If true then error screen is displayed in case of warning. If is false then error is only logged 
 
 **showfatalmessage** 	- (true|false) . Display error screen for fatal errors. If false then only log is dine. User will see `standard` fatal error in this case

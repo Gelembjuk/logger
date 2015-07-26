@@ -49,14 +49,6 @@ class ErrorScreen {
 	protected $showtrace = false;
 	
 	/**
-	* Internal flag to disable fatal error callback on user request. 
-	* The variable is needed because no way to remove shutdown function settings
-	*
-	* @var boolean
-	*/
-	protected $disablefatalcallback = false;
-	
-	/**
 	* This is the message to show for a user when error happens.
 	* If this is empty string then acrual error message will be shown.
 	*
@@ -65,11 +57,30 @@ class ErrorScreen {
 	protected $commonerrormessage = '';
 	
 	/**
-	* Internal counter of errors to stop whn too much errors.
+	* Internal counter of errors to stop when too much errors.
 	*
 	* @var boolean
 	*/
 	protected $countoferrors = 0;
+	
+	/**
+	* To know if exception handler was already set
+	*
+	* @var boolean
+	*/
+	protected $exceptionhandlerset = false;
+	/**
+	* To know if warning handler was already set
+	*
+	* @var boolean
+	*/
+	protected $warninghandlerset = false;
+	/**
+	* To know if fatal handler was already set
+	*
+	* @var boolean
+	*/
+	protected $fatalhandlerset = false;
 	
 	/**
 	 * The constructor. 
@@ -77,6 +88,7 @@ class ErrorScreen {
 	 * Options:
 	 *   catchwarnings	- (true|false) . If true then user error handler is set to catch warnings
 	 *   catchfatals	- (true|false) . If true then fatal errors are catched. Use to log error and show `normal` error screen
+	 *   catchexceptions	- (true|false) . If true then uncatched exceptions will be catched by the object
 	 *   showwarningmessage	- (true|false) . If true then error screen is displayed in case of warning. If is false then error is only logged 
 	 *   showfatalmessage 	- (true|false) . Display error screen for fatal errors. If false then only log is dine. User will see `standard` fatal error in this case
 	 *   viewformat		- set vaue for the `viewformat` variable. Possible values: html, json, xml, http . html is default value
@@ -94,6 +106,10 @@ class ErrorScreen {
 
 		if (isset($options['catchfatals']) && $options['catchfatals']) {
 			$this->setCatchFatals(true);
+		}
+		
+		if (isset($options['catchexceptions']) && $options['catchexceptions']) {
+			$this->setCatchExceptions(true);
 		}
 
 		if (isset($options['showwarningmessage'])) {
@@ -126,16 +142,40 @@ class ErrorScreen {
 		}
 	}
 	/**
+	 * Sets/Unsets exeption catch function. It will work only for uncatched exceptions
+	 * This function will work in case if some exception was not catched
+	 * with any user's try {} catch and is ready to dispay Fatal error to a user
+	 * So fatal errir will not be displayed because this catch will action
+	 * 
+	 * @param boolean $catchexceptions (true|false) to set or unset exception catch
+	 * 
+	 */
+	public function setCatchExceptions($catchexceptions = true) {
+		// check $this->exceptionhandlerset to know if handler was set or not
+		// so operation is not repeated
+		if ($catchexceptions && !$this->exceptionhandlerset) {
+			set_exception_handler(array($this, 'exceptionsHandler'));
+			$this->exceptionhandlerset = true;
+		} elseif ($this->exceptionhandlerset) {
+			// there can be problems if an application sets/unsets exception handler in other places
+			// for now no solution for this yet
+			restore_exception_handler();
+			$this->exceptionhandlerset = false;
+		}
+	}
+	/**
 	 * Sets/Unsets user error catch function. It is used to catch warnings
 	 * 
 	 * @param boolean $catchwarnings (true|false) to set or unset warnings catch
 	 * 
 	 */
 	public function setCatchWarnings($catchwarnings = true) {
-		if ($catchwarnings) {
+		if ($catchwarnings && !$this->warninghandlerset) {
 			set_error_handler(array($this, 'warningHandler'));
-		} else {
+			$this->warninghandlerset = true;
+		} elseif ($this->warninghandlerset) {
 			restore_error_handler();
+			$this->warninghandlerset = false;
 		}
 	}
 	/**
@@ -145,11 +185,11 @@ class ErrorScreen {
 	 * 
 	 */
 	public function setCatchFatals($catchfatals = true) {
-		if ($catchfatals) {
-			$this->disablefatalcallback = false;
+		if ($catchfatals && !$this->fatalhandlerset) {
 			register_shutdown_function(array($this, 'fatalsHandler'));
-		} else {
-			$this->disablefatalcallback = true;
+			$this->fatalhandlerset = true;
+		} elseif($this->fatalhandlerset) {
+			$this->fatalhandlerset = false;
 		}
 	}
 	/**
@@ -389,9 +429,9 @@ class ErrorScreen {
 	 * This is the callback for the function register_shutdown_function
 	 */
 	public function fatalsHandler() {
-		if ($this->disablefatalcallback) {
+		if (!$this->fatalhandlerset) {
 			// do nothing. fatals handler was canceled
-			// no way to remove settings of this callback so cuh variable is needed.
+			// no way to remove settings of this callback
 			return false;
 		}
 		$error = error_get_last();
@@ -406,6 +446,14 @@ class ErrorScreen {
 				$this->processError($exception,'fatal');
 			}
 		}
+		return true;
+	}
+	/**
+	 * Catch exception not catched by any try {} catch
+	 * This is the callback for the function set_exception_handler
+	 */
+	public function exceptionsHandler(\Exception $e) {
+		$this->processError($e);
 		return true;
 	}
 	/**

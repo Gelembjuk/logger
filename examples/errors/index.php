@@ -25,7 +25,8 @@ $errors = new Gelembjuk\Logger\ErrorScreen(
 			),
 			'viewformat' => 'html',
 			'catchwarnings' => true,
-			'catchfatals' => true
+			'catchfatals' => true,
+			'catchexceptions' => true
 		)
 	);
 
@@ -83,7 +84,7 @@ if ($test == '1') {
 	
 	exit;
 } elseif ($test == '5') {
-	// Test 5. Catch exception, display error
+	// Test 5. Catch exception by coder, display error
 
 	try {
 		// do something 
@@ -93,7 +94,7 @@ if ($test == '1') {
 	}
 	
 } elseif ($test == '6') {
-	// Test 6. Catch exception, display error in XML format
+	// Test 6. Catch exception by coder, display error in XML format
 	
 	$errors->setViewFormat('xml');
 
@@ -128,6 +129,15 @@ if ($test == '1') {
 	include('this_is_unfound_file.php');
 	
 	
+} elseif ($test == '9') {
+	// Test 9. Catch exception missed by coder, display error and trace
+
+	$errors->setShowTrace(true);
+
+	// do something . this function will throw exception
+	// but it is not catched in the app
+	smallTestFunction();
+	
 } else {
 	$errors->getLogger()->debug('No test selected',array('group' => 'test'));
 }
@@ -143,10 +153,11 @@ if ($test == '1') {
 	<li><a href="index.php?test=2">Test 2. Catch warning, don't display error</a></li>
 	<li><a href="index.php?test=3">Test 3. Catch fatal, display error</a></li>
 	<li><a href="index.php?test=4">Test 4. Catch warning, display error in JSON format and common text</a></li>
-	<li><a href="index.php?test=5">Test 5. Catch exception, display error</a></li>
-	<li><a href="index.php?test=6">Test 6. Catch exception, display error in XML format</a></li>
+	<li><a href="index.php?test=5">Test 5. Catch exception by coder, display error</a></li>
+	<li><a href="index.php?test=6">Test 6. Catch exception by coder, display error in XML format</a></li>
 	<li><a href="index.php?test=7">Test 7. Catch exception, display error with trace</a></li>
 	<li><a href="index.php?test=8">Test 8. Catch warning, display error with trace</a></li>
+	<li><a href="index.php?test=9">Test 9. Catch exception missed by coder, display error and trace</a></li>
 </ul>
 
 <p>All errors are logged to a file</p>
