@@ -172,6 +172,15 @@ class FileLogger extends \Psr\Log\AbstractLogger
 		
 		return true;
 	}
+	public function logFileIsWritable() {
+		if (file_exists($this->logfile) && is_writable($this->logfile)) {
+			return true;
+		}
+		if (!file_exists($this->logfile) && is_writable(dirname($this->logfile))) {
+			return true;
+		}
+		return false;
+	}
 	/**
 	 * Format log message.
 	 * 

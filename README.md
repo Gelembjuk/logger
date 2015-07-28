@@ -6,7 +6,7 @@ PHP Package for easy logging and error catching.
 **ApplicationLogger** is a trait to include logger in different classes very easy
 
 ### Installation
-Using composer: [gelembjuk/logger](http://packagist.org/packages/gelembjuk/logger) ``` require: {"gelembjuk/logger": "dev-master"} ```
+Using composer: [gelembjuk/logger](http://packagist.org/packages/gelembjuk/logger) ``` require: {"gelembjuk/logger": "*"} ```
 
 ### Configuration
 
