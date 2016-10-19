@@ -452,7 +452,7 @@ class ErrorScreen {
 	 * Catch exception not catched by any try {} catch
 	 * This is the callback for the function set_exception_handler
 	 */
-	public function exceptionsHandler(\Exception $e) {
+	public function exceptionsHandler($e) {
 		$this->processError($e);
 		return true;
 	}
