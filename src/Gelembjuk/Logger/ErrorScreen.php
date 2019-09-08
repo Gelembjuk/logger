@@ -501,6 +501,10 @@ class ErrorScreen {
 		if ($this->commonerrormessage != '') {
 			return $this->commonerrormessage;
 		}
+		if (is_a($exception, 'ParseError')) {
+            return $exception->getMessage().'. Line '.$exception->getLine().' on '.$exception->getFile();
+		}
+		
 		return $exception->getMessage();
 	}
 }
