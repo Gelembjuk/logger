@@ -46,6 +46,13 @@ class FileLogger extends \Psr\Log\AbstractLogger
 	protected $forcelogtrace = false;
 
 	/**
+	* Optional unique id of the request
+	*
+	* @var string
+	*/
+	protected $requestid = '';
+
+	/**
 	 * The constructor. 
 	 * 
 	 * Options:
@@ -69,6 +76,10 @@ class FileLogger extends \Psr\Log\AbstractLogger
 		
 		if (isset($options['forcelogtrace'])) {
 			$this->forcelogtrace = $options['forcelogtrace'];
+		}
+
+		if (isset($options['requestid'])) {
+			$this->requestid = $options['requestid'];
 		}
 	}
 	/**
@@ -188,6 +199,11 @@ class FileLogger extends \Psr\Log\AbstractLogger
 	 */
 	protected function formatLogLine($message) {
 		$line = '['.date('d-m-Y H:i:s').']: '.getmypid().': ';
+
+		if (!empty($this->requestid)) {
+			$line .= $this->requestid.': ';
+		}
+
 		$line .= $message;
 		return $line;
 	}

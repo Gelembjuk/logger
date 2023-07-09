@@ -59,9 +59,10 @@ trait ApplicationLogger {
 	 * @param string $group Filtering froup or groups splitted with `|`
 	 * @param int $level Log level number, LogLevel::ALERT by default
 	 */
-	protected function logQ($message,$group = '', $level = -1) {
+	protected function logQ($message,$group = '', $level = -1) 
+	{
 		if ($level === -1) {
-			$leve = LogLevel::ALERT;
+			$level = LogLevel::ALERT;
 		}
 		$this->log($level, $message, array('group'=>$group));
 	}

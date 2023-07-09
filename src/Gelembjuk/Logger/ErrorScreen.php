@@ -483,13 +483,13 @@ class ErrorScreen {
 
 		// build a string with information about a request
 		$requestinfo = ' '.getmypid() . "; " .
-			basename($_SERVER['SCRIPT_FILENAME']) . "; " .
-			$_SERVER['REMOTE_ADDR'] . "; " .
-			$_SERVER['REQUEST_METHOD'] . "; " .
-			$_SERVER['QUERY_STRING'] . "; " .
+			basename($_SERVER['SCRIPT_FILENAME'] ?? '') . "; " .
+			($_SERVER['REMOTE_ADDR'] ?? ''). "; " .
+			($_SERVER['REQUEST_METHOD'] ?? ''). "; " .
+			($_SERVER['QUERY_STRING'] ?? '') . "; " .
 			$postdata . "; " .
-			$_SERVER['HTTP_USER_AGENT'] . "; " .
-			$_SERVER['HTTP_REFERER'];
+			($_SERVER['HTTP_USER_AGENT'] ?? '') . "; " .
+			($_SERVER['HTTP_REFERER'] ?? '');
 		return $requestinfo;
 	}
 	/**
