@@ -464,7 +464,7 @@ class ErrorScreen {
 	protected function getRequestInformation() {
 		$postdata = '';
 			
-		if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+		if (($_SERVER['REQUEST_METHOD'] ?? '') == 'POST') {
 			// build a request string
 			$t = array();
 			
@@ -483,9 +483,9 @@ class ErrorScreen {
 
 		// build a string with information about a request
 		$requestinfo = ' '.getmypid() . "; " .
-			basename($_SERVER['SCRIPT_FILENAME'] ?? '') . "; " .
-			($_SERVER['REMOTE_ADDR'] ?? ''). "; " .
-			($_SERVER['REQUEST_METHOD'] ?? ''). "; " .
+			basename($_SERVER['SCRIPT_FILENAME']) . "; " .
+			($_SERVER['REMOTE_ADDR'] ?? '') . "; " .
+			($_SERVER['REQUEST_METHOD'] ?? '') . "; " .
 			($_SERVER['QUERY_STRING'] ?? '') . "; " .
 			$postdata . "; " .
 			($_SERVER['HTTP_USER_AGENT'] ?? '') . "; " .
