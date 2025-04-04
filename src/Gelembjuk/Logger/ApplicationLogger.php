@@ -40,7 +40,8 @@ trait ApplicationLogger {
 	 * @param string $message
 	 * @param array $context
 	 */
-	public function log($level, $message, array $context = array()) {
+	public function log($level, \Stringable|string $message, array $context = []): void
+	{
 		if (property_exists($this,'application') && is_object($this->application)) {
 			$logger = $this->application->getLogger();
 			if (is_object($logger)) {
