@@ -2,7 +2,7 @@
     "name": "gelembjuk/logger",
     "description": "Allows to add logging functions to different classes, helps to handle errors, log errors and display error screen. Can catch warnings and fatal errors",
     "require": {
-        "psr/log": "1.*"
+        "psr/log": "3.*"
     },
     "require-dev":{},
     "license": "MIT",
